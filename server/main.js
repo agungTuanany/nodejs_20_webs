@@ -1,12 +1,38 @@
 const http          = require ("http")
+const https         = require ("https")
 const url           = require ("url")
 const StringDecoder = require ("string_decoder").StringDecoder
+const fs            = require ("fs")
 const config        = require ("./config.js")
 
-// const port = 8082
 
-const server = http.createServer((req, res) => {
+// Instantiate HTTP server
+const httpServer = http.createServer((req, res) => {
+    unifiedServer(req, res)
+})
 
+// Start HTTP server
+httpServer.listen (config.httpPort, () => {
+    console.log(`The server is listening on port "${config.httpPort}" in "${config.envName}" mode `)
+})
+
+// Instantiate HTTPS server
+const httpsServerOptions = {
+    "key": fs.readFileSync("./https/key.pem"),
+    "cert": fs.readFileSync("./https/cert.pem")
+}
+
+const httpsServer = https.createServer(httpsServerOptions, (req, res) => {
+    unifiedServer(req, res)
+})
+
+// Start HTTPS server
+httpsServer.listen (config.httpsPort, () => {
+    console.log(`The server is listening on port "${config.httpsPort}" in "${config.envName}" mode `)
+})
+
+// All the server logic for HTTP and HTTPS server
+const unifiedServer = (req, res) => {
     // Get the URL and parse it
     const parsedUrl         = url.parse(req.url, true)
 
@@ -76,11 +102,8 @@ const server = http.createServer((req, res) => {
         // The request on browser
         // http://localhost:8082/app.js?foo=bad&baz=foo
     })
-})
 
-server.listen (config.port, () => {
-    console.log(`The server is listening on port "${config.port}" in "${config.envName}" mode `)
-})
+}
 
 // Define the handlers
 let handlers = {}
