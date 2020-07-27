@@ -1,8 +1,9 @@
-const http = require ("http")
-const url  = require ("url")
+const http          = require ("http")
+const url           = require ("url")
 const StringDecoder = require ("string_decoder").StringDecoder
+const config        = require ("./config.js")
 
-const port = 8082
+// const port = 8082
 
 const server = http.createServer((req, res) => {
 
@@ -77,7 +78,9 @@ const server = http.createServer((req, res) => {
     })
 })
 
-server.listen (port, () => console.log(`The server is listening on port ${port}`))
+server.listen (config.port, () => {
+    console.log(`The server is listening on port "${config.port}" in "${config.envName}" mode `)
+})
 
 // Define the handlers
 let handlers = {}
