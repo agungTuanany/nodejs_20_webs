@@ -1,5 +1,6 @@
 const http = require ("http")
 const url  = require ("url")
+const StringDecoder = require ("string_decoder").StringDecoder
 
 const port = 8082
 
@@ -21,13 +22,28 @@ const server = http.createServer((req, res) => {
     // Get the headers as an object
     const header            = req.headers
 
-    res.end ("Hello world\n")
+    // Get the payload, if any
+    const decoder           = new StringDecoder("utf-8")
+    let buffer              = "" // Just placeholder for string
 
-    // log the request path
-    console.log(`Request recieved on path: "${trimmedPath}"`)
-    console.log(`Request recieved method: "${method}"`)
-    console.log("Query string parameters:", queryStringObject)
-    console.log("Request recieved headers:", header)
+    // Using stream
+    req.on("data", data => {
+        buffer += decoder.write(data)
+    })
+
+    req.on("end", () => {
+        buffer += decoder.end()
+
+        res.end ("Hello world\n")
+
+        // log the request path
+        console.log(`Request recieved on path: "${trimmedPath}"`)
+        console.log(`Request recieved method: "${method}"`)
+        console.log("Query string parameters:", queryStringObject)
+        console.log("Request recieved headers:", header)
+        console.log("Request recieved payload", buffer)
+    })
+
 
     // The request on browser
     // http://localhost:8082/app.js?foo=bad&baz=foo
