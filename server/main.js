@@ -4,6 +4,7 @@ const url           = require ("url")
 const StringDecoder = require ("string_decoder").StringDecoder
 const fs            = require ("fs")
 
+const handlers      = require ("./lib/handlers")
 const config        = require ("./config.js")
 const _data         = require ("./lib/data.js")
 
@@ -114,30 +115,30 @@ const unifiedServer = (req, res) => {
 }
 
 // Define the handlers
-let handlers = {}
+// let handlers = {}
 
-// Sample handlers
-handlers.about = (data, callback) => {
-    // Callback an HTTP status code, and payload object
-    callback(200, {
-        "name"  : "About handlers",
-        "Group" : "Home"
-    })
-}
+// // Sample handlers
+// handlers.about = (data, callback) => {
+//     // Callback an HTTP status code, and payload object
+//     callback(200, {
+//         "name"  : "About handlers",
+//         "Group" : "Home"
+//     })
+// }
 
-handlers.projects = (data, callback) => {
-    callback(200, {
-        "name"  : "Project handlers",
-        "Group" : "Project"
-    })
-}
+// handlers.projects = (data, callback) => {
+//     callback(200, {
+//         "name"  : "Project handlers",
+//         "Group" : "Project"
+//     })
+// }
 
-handlers.blog = (data, callback) => {
-    callback(200, {
-        "name"  : "Blog handlers",
-        "Group" : "Blog"
-    })
-}
+// handlers.blog = (data, callback) => {
+//     callback(200, {
+//         "name"  : "Blog handlers",
+//         "Group" : "Blog"
+//     })
+// }
 
 // Not found handlers
 handlers.notFound = (data, callback) => callback(404)
