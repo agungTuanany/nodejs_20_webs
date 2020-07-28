@@ -5,7 +5,7 @@ const StringDecoder = require ("string_decoder").StringDecoder
 const fs            = require ("fs")
 
 const handlers      = require ("./lib/handlers")
-const config        = require ("./config.js")
+const config        = require ("./lib/config.js")
 const _data         = require ("./lib/data.js")
 
 /// XXX TEST STORING DATA XXX
@@ -114,7 +114,7 @@ const unifiedServer = (req, res) => {
 
 }
 
-// Define a reqest router
+// Define a request router
 const router = {
     "about"    : handlers.about,
     "projects" : handlers.projects,

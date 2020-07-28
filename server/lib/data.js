@@ -24,10 +24,11 @@ lib.create = async (dir, file, data, callback) => {
                 console.log(`could not create ${file}.json, ${file}.json already exist`)
                 return
             }
+
             throw err;
         }
         else {
-            let stringData = JSON.stringify(data)
+            const stringData = JSON.stringify(data)
             write(fileDescriptor, stringData)
         }
     })
@@ -49,7 +50,6 @@ lib.create = async (dir, file, data, callback) => {
     }
 }
 
-
 // Read data from a file
 lib.read = (dir, file, callback) => {
     fs.readFile(`${lib.baseDir}${dir}/${file}.json`, "utf-8", (err, data) => callback(err, data))
@@ -59,9 +59,11 @@ lib.read = (dir, file, callback) => {
 lib.update = (dir, file, data, callback) => {
     fs.open(`${lib.baseDir}${dir}/${file}.json`, "r+", (err, fileDescriptor) => {
         if (err && !fileDescriptor) {
-            if (err.code === "EEXIST") {
-                return console.log(`could not update ${file}.json, ${file}.json may not exist`)
+            if (err.code === "ENOENT") {
+                console.log(`could not update ${file}.json, ${file}.json may not exist`)
+                return
             }
+
             throw err;
         }
         else {
@@ -72,9 +74,7 @@ lib.update = (dir, file, data, callback) => {
 
     const truncate = (fileDescriptor, stringData) => {
         fs.ftruncate(fileDescriptor, err => {
-            if (err) {
-                callback(`Error while truncating the ${file}`)
-            }
+            if (err) return callback(`Error while truncating the ${file}`)
             else writeFile(fileDescriptor, stringData)
         })
     }
