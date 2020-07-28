@@ -17,34 +17,38 @@ let lib = {}
 lib.baseDir = path.join(__dirname, "./../.data/")
 
 // Write data to a file
-lib.create = (dir, file, data, callback) => {
+lib.create = async (dir, file, data, callback) => {
     fs.open(`${lib.baseDir}${dir}/${file}.json`, "wx", (err, fileDescriptor) => {
-        // If there's no error and there's fileDescriptor
-        if (!err && fileDescriptor) {
-            // Convert data into string
-            let stringData = JSON.stringify(data)
-
-            // Write into file and close
-            fs.writeFile(fileDescriptor, stringData, err => {
-                if (!err) {
-                    fs.close(fileDescriptor, err => {
-                        if (!err) {
-                            callback(false)
-                        }
-                    })
-                }
-                else{
-                    console.log("CREATE when fs.writeFile", err)
-                    callback("Error writing to new file")
-                }
-            })
+        if (err && !fileDescriptor) {
+            if (err.code === "EEXIST") {
+                console.log(`could not create ${file}.json, ${file}.json already exist`)
+                return
+            }
+            throw err;
         }
         else {
-            console.log ("CREATE when fs.open", err)
-            callback("could not create a new file, it may exists")
+            let stringData = JSON.stringify(data)
+            write(fileDescriptor, stringData)
         }
     })
+
+    const write = (fileDescriptor, stringData) => {
+        fs.write(fileDescriptor, stringData, err => {
+            if (err) return callback (`Error writing ${file}.json to new file`)
+            else  close(fileDescriptor)
+
+        })
+    }
+
+    const close = (fileDescriptor) => {
+        fs.close(fileDescriptor, err => {
+            if (err) callback(`Error close new ${file}.json`)
+            else  callback(`The ${file}.json has added`)
+
+        })
+    }
 }
+
 
 // Read data from a file
 lib.read = (dir, file, callback) => {
@@ -53,58 +57,49 @@ lib.read = (dir, file, callback) => {
 
 // Update data inside a file
 lib.update = (dir, file, data, callback) => {
-    // Open the file for writing
     fs.open(`${lib.baseDir}${dir}/${file}.json`, "r+", (err, fileDescriptor) => {
-        if (!err && fileDescriptor) {
-            // Convert data into string
-            const stringData = JSON.stringify(data)
-
-            // Truncate the file | cut into pieces
-            fs.ftruncate(fileDescriptor, err  => {
-                if (!err) {
-                    // Write to the file and close it
-                    fs.writeFile(fileDescriptor, stringData, err => {
-                        if (!err) {
-                            fs.close(fileDescriptor,  err  => {
-                                if (!err) {
-                                    callback(false)
-                                }
-                                else {
-                                    console.log("UPDATE when fs.close", err)
-                                    callback("error CLOSING existing file")
-                                }
-                            })
-                        }
-                        else {
-                            console.log("UPDATE when fs.writeFile", err)
-                            callback("error WRITING existing file")
-                        }
-                    })
-                }
-                else {
-                    console.log("UPDATE when fs.ftruncate", err)
-                    callback("Error while truncating the file")
-                }
-            })
+        if (err && !fileDescriptor) {
+            if (err.code === "EEXIST") {
+                return console.log(`could not update ${file}.json, ${file}.json may not exist`)
+            }
+            throw err;
         }
         else {
-            console.log("UPDATE when fs.open", err)
-            callback("could not open the file for update, it may not exist")
+            const stringData = JSON.stringify(data)
+            truncate(fileDescriptor, stringData)
         }
     })
+
+    const truncate = (fileDescriptor, stringData) => {
+        fs.ftruncate(fileDescriptor, err => {
+            if (err) {
+                callback(`Error while truncating the ${file}`)
+            }
+            else writeFile(fileDescriptor, stringData)
+        })
+    }
+
+    const writeFile = (fileDescriptor, stringData) => {
+        fs.writeFile(fileDescriptor, stringData, err => {
+            if (err) return callback(`Error writing to existing ${file}.json`)
+            else close(fileDescriptor)
+        })
+    }
+
+    const close = (fileDescriptor) => {
+        fs.close(fileDescriptor, err => {
+            if (err) return callback(`Error close ${file}.json`)
+            else callback(`The ${file}.json has been updated`)
+        })
+    }
 }
 
 // Deleting data inside file
 lib.delete = (dir, file, callback) => {
     // // Unlink the file
-    fs.unlink (`${lib.baseDir}${dir}/${file}.json`, function (err, fileDescriptor) {
-        if (!err) {
-            callback(false)
-        }
-        else {
-            // console.log("DELETE when fs.unlink", err)
-            callback ("Could not open file for updating, it may not exist yet")
-        }
+    fs.unlink (`${lib.baseDir}${dir}/${file}.json`, (err, fileDescriptor) => {
+        if (err) return callback(`Could not delete ${file}.json, it may not exist yet`)
+        else callback(`The ${file}.json has been deleted`)
     })
 }
 
