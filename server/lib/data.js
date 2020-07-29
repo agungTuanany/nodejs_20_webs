@@ -1,3 +1,4 @@
+"use strict"
 /*
  * Library for storing and editing data
  *
