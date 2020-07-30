@@ -24,24 +24,25 @@ lib.create = async (dir, file, data, callback) => {
 
         if (err && !fileDescriptor) {
             if (err.code === "EEXIST") {
-                console.log(`could not create ${file}.json, ${file}.json already exist`);
+                callback(`could not create "${file}.json", "${file}.json" already exist`);
                 return;
             };
 
             throw err;
-        }
-        else {
-            const stringData = JSON.stringify(data);
-            return write(fileDescriptor, stringData);
         };
+
+        const stringData = JSON.stringify(data);
+
+        return write(fileDescriptor, stringData);
     });
 
     const write = (fileDescriptor, stringData) => {
 
         fs.write(fileDescriptor, stringData, err => {
 
-            if (err) return callback (`Error writing ${file}.json to new file`);
-            else  return close(fileDescriptor);
+            if (err) return callback(`Error writing "${file}.json" to new file`);
+
+            return close(fileDescriptor);
 
         });
     };
@@ -51,7 +52,8 @@ lib.create = async (dir, file, data, callback) => {
         fs.close(fileDescriptor, err => {
 
             if (err) return callback(`Error close new ${file}.json`);
-            else return callback(`The ${file}.json has added`);
+
+            return console.log(`The ${file}.json has created`);
         });
     };
 };
@@ -61,7 +63,9 @@ lib.read = (dir, file, callback) => {
 
     fs.readFile(`${lib.baseDir}${dir}/${file}.json`, "utf-8", (err, data) => {
 
-        return callback(err, data);
+        if (err) return callback(`Error deleting ${file}, it may not exist`)
+
+        return console.log('This the readed data:', data);
     });
 };
 
@@ -75,16 +79,16 @@ lib.update = (dir, file, data, callback) => {
 
         if (err && !fileDescriptor) {
             if (err.code === "ENOENT") {
-                console.log(`could not update ${file}.json, ${file}.json may not exist`);
+                callback(`could not update "${file}.json", "${file}.json" may not exist`);
                 return;
             }
 
             throw err;
-        }
-        else {
-            const stringData = JSON.stringify(data);
-            return truncate(fileDescriptor, stringData);
         };
+
+        const stringData = JSON.stringify(data);
+
+        return truncate(fileDescriptor, stringData);
     });
 
     const truncate = (fileDescriptor, stringData) => {
@@ -92,16 +96,18 @@ lib.update = (dir, file, data, callback) => {
         fs.ftruncate(fileDescriptor, err => {
 
             if (err) return callback(`Error while truncating the ${file}`);
-            else return writeFile(fileDescriptor, stringData);
-        })
-    }
+
+            return writeFile(fileDescriptor, stringData);
+        });
+    };
 
     const writeFile = (fileDescriptor, stringData) => {
 
         fs.writeFile(fileDescriptor, stringData, err => {
 
-            if (err) return callback(`Error writing to existing ${file}.json`);
-            else return close(fileDescriptor);
+            if (err) return callback(`Error writing to existing "${file}.json"`);
+
+            return close(fileDescriptor);
         });
     };
 
@@ -109,8 +115,9 @@ lib.update = (dir, file, data, callback) => {
 
         fs.close(fileDescriptor, err => {
 
-            if (err) return callback(`Error close ${file}.json`);
-            else return callback(`The ${file}.json has been updated`);
+            if (err) return callback(`Error close "${file}.json"`);
+
+            return console.log(`The "${file}.json" has been updated:`, data);
         });
     };
 };
@@ -121,8 +128,9 @@ lib.delete = (dir, file, callback) => {
     // // Unlink the file
     fs.unlink (`${lib.baseDir}${dir}/${file}.json`, (err, fileDescriptor) => {
 
-        if (err) return callback(`Could not delete ${file}.json, it may not exist yet`);
-        else return callback(`The ${file}.json has been deleted`);
+        if (err) return callback(`Could not delete "${file}.json", it may not exist yet`);
+
+        return console.log(`The "${file}.json" has been deleted`);
     });
 };
 

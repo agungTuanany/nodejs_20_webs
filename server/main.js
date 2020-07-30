@@ -11,10 +11,10 @@ const config        = require("./lib/config.js");
 const _data         = require("./lib/data.js");
 
 /// XXX TEST STORING DATA XXX
-// _data.create("test", "newFile", { "foo": "bar" }, err => console.log("this was the error:", `"${err}"`))
-//_data.read("test", "blog", (err, data) => console.log ('this was the error', `"${err}"`, 'and this was the data', `"${data}"`))
-// _data.update("test", "blog", {"BLOG": "BLOG NUMBER 1"}, err => console.log(`this was the error: ${err}`))
-// _data.delete("test", "newFile", err => console.log(`this was the error: "${err}"`))
+// _data.create("test", "newFile", { "foo": "bar" }, err => console.log(`this was the error: '${err}'`))
+// _data.read("test", "newFile", (err, data) => console.log (` this was the error: "${err}"`))
+// _data.update("test", "newFile", {"BLOG": "BLOG NUMBER 1"}, err => console.log(`this was the error: '${err}'`))
+_data.delete("test", "newFile", err => console.log(`this was the error: '${err}'`))
 
 
 // Instantiate HTTP server
