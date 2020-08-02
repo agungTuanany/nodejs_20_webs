@@ -125,7 +125,6 @@ lib.update = (dir, file, data, callback) => {
 // Deleting data inside file
 lib.delete = (dir, file, callback) => {
 
-    // // Unlink the file
     fs.unlink (`${lib.baseDir}${dir}/${file}.json`, (err, fileDescriptor) => {
 
         if (err) return callback(`Could not delete "${file}.json", it may not exist yet`);

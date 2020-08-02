@@ -14,7 +14,7 @@ const _data         = require("./lib/data.js");
 // _data.create("test", "newFile", { "foo": "bar" }, err => console.log(`this was the error: '${err}'`))
 // _data.read("test", "newFile", (err, data) => console.log (` this was the error: "${err}"`))
 // _data.update("test", "newFile", {"BLOG": "BLOG NUMBER 1"}, err => console.log(`this was the error: '${err}'`))
-_data.delete("test", "newFile", err => console.log(`this was the error: '${err}'`))
+// _data.delete("test", "newFile", err => console.log(`this was the error: '${err}'`))
 
 
 // Instantiate HTTP server
@@ -24,7 +24,7 @@ const httpServer = http.createServer((req, res) => {
 });
 
 // Start HTTP server
-httpServer.listen (config.httpPort, () => console.log(`The server is listening on port "${config.httpPort}" in "${config.envName}" mode`));
+httpServer.listen(config.httpPort, () => console.log(`The server is listening on port "${config.httpPort}" in "${config.envName}" mode`));
 
 // Instantiate HTTPS server
 const httpsServerOptions = {
