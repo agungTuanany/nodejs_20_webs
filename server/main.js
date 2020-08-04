@@ -8,6 +8,7 @@ const fs            = require("fs");
 
 const handlers      = require("./lib/handlers");
 const config        = require("./lib/config.js");
+const helpers       = require("./lib/helpers.js");
 const _data         = require("./lib/data.js");
 
 /// XXX TEST STORING DATA XXX
@@ -80,7 +81,7 @@ const unifiedServer = (req, res) => {
             queryStringObject,
             method,
             header,
-            "payload": buffer
+            payload: helpers.parseJsonToObject(buffer)
         };
 
         // Route the request to the handler specified in the router
@@ -119,5 +120,6 @@ const unifiedServer = (req, res) => {
 const router = {
     "about"    : handlers.about,
     "projects" : handlers.projects,
-    "blog"     : handlers.blog
+    "blog"     : handlers.blog,
+    "users"    : handlers.users
 };

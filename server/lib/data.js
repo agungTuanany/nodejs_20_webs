@@ -4,12 +4,19 @@
  *
  * return .json only.
  *
+ * XXX TEST STORING DATA XXX
+ * _data.create("test", "newFile", { "foo": "bar" }, err => console.log(`this was the error: '${err}'`))
+ * _data.read("test", "newFile", (err, data) => console.log (` this was the error: "${err}"`))
+ * _data.update("test", "newFile", {"BLOG": "BLOG NUMBER 1"}, err => console.log(`this was the error: '${err}'`))
+ * _data.delete("test", "newFile", err => console.log(`this was the error: '${err}'`))
  */
 
-// Dependencies
+// Core Dependencies
 const fs   = require("fs");
 const path = require("path");
 
+// Internal Dependencies
+const helpers = require("./helpers.js");
 
 // Container for the module (to be exported)
 let lib = {};
@@ -51,9 +58,14 @@ lib.create = async (dir, file, data, callback) => {
 
         fs.close(fileDescriptor, err => {
 
-            if (err) return callback(`Error close new ${file}.json`);
-
-            return console.log(`The ${file}.json has created`);
+            if (err) {
+                return callback(`Error close new ${file}.json`);
+            }
+            else {
+                console.log("createDataUsers:", data);
+                callback(false);
+                return;
+            };
         });
     };
 };
@@ -63,9 +75,16 @@ lib.read = (dir, file, callback) => {
 
     fs.readFile(`${lib.baseDir}${dir}/${file}.json`, "utf-8", (err, data) => {
 
-        if (err) return callback(`Error deleting ${file}, it may not exist`)
 
-        return console.log('This the readed data:', data);
+        if (!err && data ){
+            const parsedData = helpers.parseJsonToObject(data)
+            callback(false, parsedData)
+            return;
+        }
+        else {
+            return callback(`Error read ${file}.json, it may not exist`, err, data);
+        };
+
     });
 };
 
@@ -117,7 +136,7 @@ lib.update = (dir, file, data, callback) => {
 
             if (err) return callback(`Error close "${file}.json"`);
 
-            return console.log(`The "${file}.json" has been updated:`, data);
+            return callback(`The "${file}.json" has been updated:`, data);
         });
     };
 };
