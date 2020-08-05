@@ -74,9 +74,8 @@ const unifiedServer = (req, res) => {
             router[trimmedPath] :
             handlers.notFound;
 
-
         // Construct the data object to send to the handler
-        let data = {
+        const data = {
             trimmedPath,
             queryStringObject,
             method,

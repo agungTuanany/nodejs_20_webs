@@ -197,7 +197,7 @@ handlers._users.post = (data, callback) => {
 // User - GET
 // Required data: phone
 // Optional: none
-// @TODO only let authenticated user can access their object. Don't let other users access anyone elses
+// @TODO only let authenticated user can access their object. Don't let other users access anyone else
 handlers._users.get = (data, callback) => {
 
     // Check phone number is valid from query
@@ -244,10 +244,22 @@ handlers._users.get = (data, callback) => {
     };
 
 };
+
+/*
+ * Example request query on Postman:
+ * PUT | localhost:8082/users
+ *
+ *{
+ *    "firstName"     : "BBB",
+ *    "phone"         : "1234567890122"
+ *}
+ *
+ */
+
 // User - PUT
 // Required data: phone
 // Optional data: firstName, lastName, password | at least one must be specified
-// @TODO only let authenticated user can update their own object. Don't let other users update access anyone elses
+// @TODO only let authenticated user can update their own object. Don't let other users update access anyone else
 handlers._users.put = (data, callback) => {
 
     // Check phone number is valid from payload
@@ -282,10 +294,11 @@ handlers._users.put = (data, callback) => {
                 callback(200, {
                     "success code": 200,
                     "succes message": ` Success Update user with phone number ${userData.phone}`,
+                    userData
                 });
             };
-
         });
+        return;
     };
 
     const updateField = (err, userData) => {
@@ -320,30 +333,6 @@ handlers._users.put = (data, callback) => {
             }
             else {
                 return updateField(err, userData);
-
-                // if (firstName) {
-                //     userData.firstName = firstName
-                // };
-
-                // if (lastName) {
-                //     userData.lastName = lastName;
-                // };
-
-                // if (password) {
-                //     userData.password = helpers.hash(password);
-                // };
-
-                // console.log(err,userData)
-
-                // callback(200,{
-                //     userData,
-                //     err
-                // })
-                // console.log(userData)
-                // return callback(200, {
-                //     data: data.payload,
-                //     userData
-                // });
             };
         });
     };
@@ -377,130 +366,79 @@ handlers._users.put = (data, callback) => {
     };
 };
 
-    // const readPhone = () => {
+/*
+ * Example request query on Postman:
+ * DELETE | localhost:8082/users?phone=1234567890122
+ *
+ */
 
-    //     if (!firstName || !lastName || !password) {
-    //         callback(400, {
-    //             "error code": 400,
-    //             "error message": "Missing field to update",
-    //             "hint": "Please update on of those firstName or lastName or password",
-    //             "data":  data
-    //         });
-
-    //     }
-    //     else {
-    //         _data.read("users", phone, (err, userData) => {
-
-    //             if (err && userData) {
-    //                 console.log("readPhone data:" ,err)
-    //                 callback(400, {
-    //                     "error code": 400,
-    //                     "error message": "The specified user does not exist",
-    //                     "query": data
-    //                 });
-    //             }
-    //             else {
-    //                 // Update the field necessary
-    //                 if (firstName) {
-    //                     userData.firstName = firstName;
-    //                 };
-
-    //                 if (lastName) {
-    //                     userData.lastName = lastName;
-    //                 };
-
-    //                 if (password) {
-    //                     userData.hashedPassword = helpers.hash(password)
-    //                 };
-
-    //                 // Store new update
-    //                 return storeUpdate(userData);
-    //             };
-    //         });
-    //     };
-    // };
-        // // Error if nothing is sent to update
-        // if (firstName || lastName || password) {
-
-        //     // Lookup the user
-        //     _data.read("users", phone, (err, userData) => {
-
-        //     });
-        // }
-        // else {
-
-        // }
-                // if (!err && userData) {
-
-                //     // Update the field necessary
-                //     if (firstName) {
-                //         userData.firstName = firstName;
-                //     };
-
-                //     if (lastName) {
-                //         userData.lastName = lastName;
-                //     };
-
-                //     if (password) {
-                //         userData.hashedPassword = helpers.hash(password)
-                //     };
-
-                //     _data.update("users", phone, userData, err => {
-
-                //         if(!err) {
-                //             callback(200, {
-                //                 "success code": 200,
-                //                 "success message": "Update users was success",
-                //                 userData
-                //             })
-                //         }
-                //         else {
-                //             console.log(err)
-                //             return callback(500, {
-                //                 "error code": 500,
-                //                 "error message": "Could not update the users",
-                //                 userData
-                //             })
-                //         }
-                //     })
-                // }
-                // else {
-                //     callback(400, {
-                //         "error code": 400,
-                //         "error message": "Missing required field",
-                //         "hint": "input the correct phone number",
-                //         "data": data
-                //     });
-                // };
-
-    // const storeUpdate = (userData) => {
-
-    //     _data.update("users", phone, userData, err => {
-
-    //         if (err) {
-    //             console.log("storeUpdate:", err);
-    //             callback(500, {
-    //                 "error code": 500,
-    //                 "error message": "Could not update the user",
-    //                 "data": data
-    //             });
-    //         }
-    //         else {
-    //             callback(200, {
-    //                 "success code": 200,
-    //                 "success message": "Success update specified user",
-    //                 "data":  data
-    //             });
-    //         };
-    //     });
-    // };
-
-
+// User - DELETE
+// Required field: phone
+// Optional field: none
+// @TODO only let authenticated user can update their own object. Don't let other users update access anyone else
+// @TODO delete any other data files associated with this user
+// @TODO Clean old checks with the user
 handlers._users.delete = (data, callback) => {
 
-    callback(200, {
-        "message": `Your request: "${data.method}" was accepted`,
-    });
+    // Check phone number is valid from query
+    const phone = typeof(data.queryStringObject.phone) === "string" && data.queryStringObject.phone.trim().length >= 11 ?
+        data.queryStringObject.phone.trim() :
+        false;
+
+    const deleteUser = (err, data) => {
+
+        _data.delete("users", phone, err => {
+
+            if (err) {
+                console.log(err);
+                callback(500, {
+                    "error code": 500,
+                    "error message": `Could not delete the specified users with phone number ${data.phone}`,
+                    data
+                });
+            }
+            else {
+                callback(200, {
+                    "sucess code": 200,
+                    "success message": `Success delete users with phone number: ${data.phone}`,
+                    "deleted user": data,
+                    err
+                })
+            }
+        })
+    }
+
+    const readPhone = () => {
+
+        _data.read("users", phone, (err, data) => {
+
+            if (err && data) {
+                console.log("readPhone data:" ,err)
+                callback(404, {
+                    "error code": 404,
+                    "error message": "phone was not registered",
+                    "query": err
+                });
+            }
+            else {
+                return deleteUser(err, data);
+            };
+        });
+    };
+
+    if (!phone) {
+        callback(400, {
+            "error code": 400,
+            "requested method": data.method.toUpperCase(),
+            "requested url": data.trimmedPath,
+            "url query": data.queryStringObject,
+            "error message": "Missing required field",
+            "hint": "input the correct phone number in the query",
+        });
+    }
+    else {
+        return readPhone();
+    };
 };
 
 
