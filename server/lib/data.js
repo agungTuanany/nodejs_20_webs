@@ -7,7 +7,7 @@
  * XXX TEST STORING DATA XXX
  * _data.create("test", "newFile", { "foo": "bar" }, err => console.log(`this was the error: '${err}'`))
  * _data.read("test", "newFile", (err, data) => console.log (` this was the error: "${err}"`))
- * _data.update("test", "newFile", {"BLOG": "BLOG NUMBER 1"}, err => console.log(`this was the error: '${err}'`))
+// _data.update("test", "newFile", {"BLOG": "BLOG NUMBER 1"}, (err, data) => console.log(`this was the error: '${err}' and data ${data}`))
  * _data.delete("test", "newFile", err => console.log(`this was the error: '${err}'`))
  */
 
@@ -38,7 +38,7 @@ lib.create = async (dir, file, data, callback) => {
             throw err;
         };
 
-        const stringData = JSON.stringify(data);
+        const stringData = JSON.stringify(data, null, 4);
 
         return write(fileDescriptor, stringData);
     });
@@ -75,7 +75,6 @@ lib.read = (dir, file, callback) => {
 
     fs.readFile(`${lib.baseDir}${dir}/${file}.json`, "utf-8", (err, data) => {
 
-
         if (!err && data ){
             const parsedData = helpers.parseJsonToObject(data)
             callback(false, parsedData)
@@ -84,7 +83,6 @@ lib.read = (dir, file, callback) => {
         else {
             return callback(`Error read ${file}.json, it may not exist`, err, data);
         };
-
     });
 };
 
@@ -96,16 +94,16 @@ lib.update = (dir, file, data, callback) => {
 
     fs.open(`${lib.baseDir}${dir}/${file}.json`, "r+", (err, fileDescriptor) => {
 
-        if (err && !fileDescriptor) {
+        if (err && fileDescriptor) {
             if (err.code === "ENOENT") {
-                callback(`could not update "${file}.json", "${file}.json" may not exist`);
+                callback(`could not create "${file}.json", "${file}.json" already exist`);
                 return;
-            }
+            };
 
             throw err;
         };
 
-        const stringData = JSON.stringify(data);
+        const stringData = JSON.stringify(data, null, 4);
 
         return truncate(fileDescriptor, stringData);
     });
@@ -126,17 +124,17 @@ lib.update = (dir, file, data, callback) => {
 
             if (err) return callback(`Error writing to existing "${file}.json"`);
 
-            return close(fileDescriptor);
+            return close(fileDescriptor, stringData);
         });
     };
 
-    const close = (fileDescriptor) => {
+    const close = (fileDescriptor, stringData) => {
 
         fs.close(fileDescriptor, err => {
 
             if (err) return callback(`Error close "${file}.json"`);
 
-            return callback(`The "${file}.json" has been updated:`, data);
+            return callback(false, stringData);
         });
     };
 };

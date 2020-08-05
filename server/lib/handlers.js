@@ -73,8 +73,10 @@ handlers.users = (data, callback) => {
 handlers._users = {}
 
 /*
- * Example request in Postman body:
+ * Example request on Postman:
  * POST | localhost:8082/users
+ *
+ * Body:
  * {
  *   "firstName"     : "Jhon",
  *   "lastName"      : "Smith",
@@ -85,9 +87,9 @@ handlers._users = {}
  *
  */
 
-// _users - POST
+// Users - POST
 // Required data: firstName, lastName, phone, password, tosAgreement
-// optional: none
+// Optional: none
 handlers._users.post = (data, callback) => {
 
     const firstName = typeof(data.payload.firstName) === "string" && data.payload.firstName.trim().length > 0 ?
@@ -138,6 +140,7 @@ handlers._users.post = (data, callback) => {
                 }
                 else {
                     return callback(200, {
+                        "success code": 200,
                         "200": `user has been created with phone number: ${phone}`
                     });
                 };
@@ -151,8 +154,8 @@ handlers._users.post = (data, callback) => {
 
             // it should return err, cause file not exist, if exist callback(400)
             if(err){
-                console.log("================> readDataUsers: err", err)
-                console.log("================> readDataUsers: data", phone)
+                // console.log("readDataUsers: err", err)
+                // console.log("readDataUsers: data", phone)
                 return createDataUsers();
                 // console.log(err)
                 // callback(200, {
@@ -186,26 +189,18 @@ handlers._users.post = (data, callback) => {
 };
 
 /*
- * Example request query Postman :
+ * Example request query on Postman:
  * GET | localhost:8082/users?phone=1234567890122
- *
- * {
- *   "firstName"     : "Jhon",
- *   "lastName"      : "Smith",
- *   "phone"         : "1234567890122",
- *   "password"      : "thisIsAPassword",
- *   "tosAgreement"  : true
- * }
  *
  */
 
 // User - GET
 // Required data: phone
-// optional: none
+// Optional: none
 // @TODO only let authenticated user can access their object. Don't let other users access anyone elses
 handlers._users.get = (data, callback) => {
 
-    // Check phone number is valid
+    // Check phone number is valid from query
     const phone = typeof(data.queryStringObject.phone) === "string" && data.queryStringObject.phone.trim().length >= 11 ?
         data.queryStringObject.phone.trim() :
         false;
@@ -215,18 +210,19 @@ handlers._users.get = (data, callback) => {
         _data.read("users", phone, (err, data) => {
 
             if (err && data) {
+                console.log("readPhone data:" ,err)
                 callback(404, {
                     "error code": 404,
                     "error message": "phone was not registered",
-                    "query": data.queryStringObject
+                    "query": data
                 });
             }
             else {
                 // Remove the hashed password from the user object before returning it to requester
                 delete data.hashedPassword;
                 callback(200, {
-                    "sucess code": 200,
-                    "sucess message": "phone number was valid",
+                    "success code": 200,
+                    "success message": "phone number was valid",
                     "user data": data
                 });
             };
@@ -236,9 +232,11 @@ handlers._users.get = (data, callback) => {
     if (!phone) {
         callback(400, {
             "error code": 400,
+            "requested method": data.method.toUpperCase(),
+            "requested url": data.trimmedPath,
+            "url query": data.queryStringObject,
             "error message": "Missing required field",
-            "phone": data.queryStringObject.phone,
-            "query": data.queryStringObject
+            "hint": "input the correct phone number",
         });
     }
     else {
@@ -246,13 +244,257 @@ handlers._users.get = (data, callback) => {
     };
 
 };
-
+// User - PUT
+// Required data: phone
+// Optional data: firstName, lastName, password | at least one must be specified
+// @TODO only let authenticated user can update their own object. Don't let other users update access anyone elses
 handlers._users.put = (data, callback) => {
 
-    callback(200, {
-        "message": `Your request: "${data.method}" was accepted`,
-    });
+    // Check phone number is valid from payload
+    const phone = typeof(data.payload.phone) === "string" && data.payload.phone.trim().length >= 11 ?
+        data.payload.phone.trim() :
+        false;
+
+    // Check for optional field
+    const firstName = typeof(data.payload.firstName) === "string" && data.payload.firstName.trim().length > 0 ?
+        data.payload.firstName.trim() :
+        false;
+    const lastName = typeof(data.payload.lastName) === "string" && data.payload.lastName.trim().length > 0 ?
+        data.payload.lastName.trim() :
+        false;
+    const password = typeof(data.payload.password) === "string" && data.payload.password.trim().length > 0 ?
+        data.payload.password.trim() :
+        false;
+
+    const storeUpdate = (err, userData) => {
+
+        _data.update("users", phone, userData, err => {
+
+            if (err) {
+                console.log(err);
+                callback(500, {
+                    "error code": 500,
+                    "error message": "Could not update the user",
+                });
+            }
+            else {
+                console.log(err);
+                callback(200, {
+                    "success code": 200,
+                    "succes message": ` Success Update user with phone number ${userData.phone}`,
+                });
+            };
+
+        });
+    };
+
+    const updateField = (err, userData) => {
+
+        if (firstName) {
+             userData.firstName = firstName
+        };
+
+        if (lastName) {
+             userData.lastName = lastName;
+        };
+
+        if (password) {
+            userData.password = helpers.hash(password);
+        };
+
+        return storeUpdate(err, userData);
+    };
+
+    const readPhone = () => {
+
+        _data.read("users", phone, (err, userData) => {
+
+            if (err && userData) {
+                console.log("readPhone data:" ,err);
+                callback(404, {
+                    "error code": 404,
+                    "error message": "The specified user does not exist",
+                    "payload": data.payload,
+                    userData
+                });
+            }
+            else {
+                return updateField(err, userData);
+
+                // if (firstName) {
+                //     userData.firstName = firstName
+                // };
+
+                // if (lastName) {
+                //     userData.lastName = lastName;
+                // };
+
+                // if (password) {
+                //     userData.password = helpers.hash(password);
+                // };
+
+                // console.log(err,userData)
+
+                // callback(200,{
+                //     userData,
+                //     err
+                // })
+                // console.log(userData)
+                // return callback(200, {
+                //     data: data.payload,
+                //     userData
+                // });
+            };
+        });
+    };
+
+    const readField = () => {
+
+        if (firstName || lastName || password) {
+            return readPhone();
+        }
+        else {
+            callback(400, {
+                "error code": 400,
+                "error message": "No field to update",
+                "hint": "Please update on of those: 'firstName' or 'lastName' or 'password'",
+                "data":  data.payload
+            });
+        };
+    };
+
+    // Error if the phone is invalid
+    if (!phone) {
+        callback(400, {
+            "error code": 400,
+            "error message": "Missing required field",
+            "hint": "input the correct phone number",
+            "data": data
+        });
+    }
+    else {
+        return readField();
+    };
 };
+
+    // const readPhone = () => {
+
+    //     if (!firstName || !lastName || !password) {
+    //         callback(400, {
+    //             "error code": 400,
+    //             "error message": "Missing field to update",
+    //             "hint": "Please update on of those firstName or lastName or password",
+    //             "data":  data
+    //         });
+
+    //     }
+    //     else {
+    //         _data.read("users", phone, (err, userData) => {
+
+    //             if (err && userData) {
+    //                 console.log("readPhone data:" ,err)
+    //                 callback(400, {
+    //                     "error code": 400,
+    //                     "error message": "The specified user does not exist",
+    //                     "query": data
+    //                 });
+    //             }
+    //             else {
+    //                 // Update the field necessary
+    //                 if (firstName) {
+    //                     userData.firstName = firstName;
+    //                 };
+
+    //                 if (lastName) {
+    //                     userData.lastName = lastName;
+    //                 };
+
+    //                 if (password) {
+    //                     userData.hashedPassword = helpers.hash(password)
+    //                 };
+
+    //                 // Store new update
+    //                 return storeUpdate(userData);
+    //             };
+    //         });
+    //     };
+    // };
+        // // Error if nothing is sent to update
+        // if (firstName || lastName || password) {
+
+        //     // Lookup the user
+        //     _data.read("users", phone, (err, userData) => {
+
+        //     });
+        // }
+        // else {
+
+        // }
+                // if (!err && userData) {
+
+                //     // Update the field necessary
+                //     if (firstName) {
+                //         userData.firstName = firstName;
+                //     };
+
+                //     if (lastName) {
+                //         userData.lastName = lastName;
+                //     };
+
+                //     if (password) {
+                //         userData.hashedPassword = helpers.hash(password)
+                //     };
+
+                //     _data.update("users", phone, userData, err => {
+
+                //         if(!err) {
+                //             callback(200, {
+                //                 "success code": 200,
+                //                 "success message": "Update users was success",
+                //                 userData
+                //             })
+                //         }
+                //         else {
+                //             console.log(err)
+                //             return callback(500, {
+                //                 "error code": 500,
+                //                 "error message": "Could not update the users",
+                //                 userData
+                //             })
+                //         }
+                //     })
+                // }
+                // else {
+                //     callback(400, {
+                //         "error code": 400,
+                //         "error message": "Missing required field",
+                //         "hint": "input the correct phone number",
+                //         "data": data
+                //     });
+                // };
+
+    // const storeUpdate = (userData) => {
+
+    //     _data.update("users", phone, userData, err => {
+
+    //         if (err) {
+    //             console.log("storeUpdate:", err);
+    //             callback(500, {
+    //                 "error code": 500,
+    //                 "error message": "Could not update the user",
+    //                 "data": data
+    //             });
+    //         }
+    //         else {
+    //             callback(200, {
+    //                 "success code": 200,
+    //                 "success message": "Success update specified user",
+    //                 "data":  data
+    //             });
+    //         };
+    //     });
+    // };
+
 
 handlers._users.delete = (data, callback) => {
 

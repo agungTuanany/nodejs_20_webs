@@ -14,7 +14,7 @@ const _data         = require("./lib/data.js");
 /// XXX TEST STORING DATA XXX
 // _data.create("test", "newFile", { "foo": "bar" }, err => console.log(`this was the error: '${err}'`))
 // _data.read("test", "newFile", (err, data) => console.log (` this was the error: "${err}"`))
-// _data.update("test", "newFile", {"BLOG": "BLOG NUMBER 1"}, err => console.log(`this was the error: '${err}'`))
+// _data.update("test", "newFile", {"BLOG": "BLOG NUMBER 1"}, (err, data) => console.log(`this was the error: '${err}' and data ${data}`))
 // _data.delete("test", "newFile", err => console.log(`this was the error: '${err}'`))
 
 
