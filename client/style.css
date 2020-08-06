@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
+
+:root {
+    /* button colors */
+    --success-color           : #2ECC71;
+    --error-color             : #E74C3C;
+
+    /* colors */
+    --white-solid             : #FFFFFF;
+    --white-gallery           : #F0F0F0;
+    --gray-athens             : #F9FAFB;
+    --gray-boulder            : #777777;
+    --blue-curious            : #3498DB;
+
+    /* borders */
+    --black-transparent       : rgba(0, 0, 0, 0.3);
+}
+
+* {
+    box-sizing                : border-box;
+}
+
+body {
+    background-color          : var(--gray-athens);
+    font-family               : 'Open Sans', sans-serif;
+    display                   : flex;
+    align-items               : center;
+    justify-content           : center;
+    min-height                : 100vh;
+    margin                    : 0;
+}
+
+.container {
+    background-color          : var(--white-solid);
+    border-radius             : 5px;
+    box-shadow                : 0 2px 10px var(black-transparent);
+    width                     : 400px;
+}
+
+h2 {
+    text-align                : center;
+    margin                    : 0 0 20px;
+}
+
+.form {
+    padding                   : 30px 40px;
+}
+
+.form-control {
+    margin-bottom             : 10px;
+    padding-bottom            : 20px;
+    position                  : relative;
+}
+
+.form-control label {
+    color                     : var(--gray-boulder);
+    display                   : block;
+    margin-bottom             : 5px;
+}
+
+.form-control input {
+    border                    : 2px solid var(--white-gallery);
+    border-radius             : 4px;
+    display                   : block;
+    width                     : 100%;
+    padding                   : 10px;
+    font-size                 : 14px;
+}
+
+.form-control input:focus {
+    outline                   : 0;
+    border-color              : var(--gray-boulder);
+}
+
+.form-control.success input {
+    border-color              : var(--success-color);
+}
+
+.form-control.error input {
+    border-color              : var(--error-color);
+}
+
+.form-control small {
+    color                     : var(--error-color);
+    position                  : absolute;
+    bottom                    : 0;
+    left                      : 0;
+    visibility                : hidden;
+}
+
+.form-control.error small {
+    visibility                : visible;
+}
+
+.form button {
+    cursor                    : pointer;
+    background-color          : var(--blue-curious);
+    border                    : 2px solid var(--blue-curious);
+    border-radius             : 4px;
+    color                     : var(--white-solid);
+    display                   : block;
+    font-size                 : 16px;
+    padding                   : 10px;
+    margin-top                : 20px;
+    width                     : 100%;
+}

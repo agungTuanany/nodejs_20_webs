@@ -18,53 +18,44 @@ const _data         = require("./lib/data.js");
 // _data.delete("test", "newFile", err => console.log(`this was the error: '${err}'`))
 
 
-// Instantiate HTTP server
-const httpServer = http.createServer((req, res) => {
-
-    unifiedServer(req, res);
-});
-
-// Start HTTP server
-httpServer.listen(config.httpPort, () => console.log(`The server is listening on port "${config.httpPort}" in "${config.envName}" mode`));
-
-// Instantiate HTTPS server
+// Server HTTPS server certificate
 const httpsServerOptions = {
     "key": fs.readFileSync("./https/key.pem"),
     "cert": fs.readFileSync("./https/cert.pem")
 };
+// Instantiate HTTP server
+const httpServer = http.createServer((request, response) => unifiedServer(request, response));
+// Instantiate HTTPS server
+const httpsServer = https.createServer(httpsServerOptions, (request, response) => unifiedServer(request, response));
 
-const httpsServer = https.createServer(httpsServerOptions, (req, res) => unifiedServer(req, res));
-
-// Start HTTPS server
-httpsServer.listen (config.httpsPort, () => console.log(`The server is listening on port "${config.httpsPort}" in "${config.envName}" mode `));
 
 // All the server logic for HTTP and HTTPS server
-const unifiedServer = (req, res) => {
+const unifiedServer = (request, response) => {
 
     // Get the URL and parse it
-    const parsedUrl = url.parse(req.url, true);
+    const parsedUrl = url.parse(request.url, true);
 
     // Get the path
     const path = parsedUrl.pathname;
     const trimmedPath = path.replace(/^\/+|\/+$/g, "");
 
     // Get the HTTP method
-    const method = req.method.toLowerCase();
+    const method = request.method.toLowerCase();
 
     // Get the query string as an object
     const queryStringObject =  parsedUrl.query;                     //JSON.parse(JSON.stringify(parsedUrl.query))
 
     // Get the headers as an object
-    const header = req.headers;
+    const header = request.headers;
 
     // Get the payload, if any
     const decoder = new StringDecoder("utf-8");
     let buffer = "";                                                // Just placeholder for string
 
     // Using stream | emit stream
-    req.on("data", data =>  buffer += decoder.write(data));
+    request.on("data", data =>  buffer += decoder.write(data));
 
-    req.on("end", () => {
+    request.on("end", () => {
 
         buffer += decoder.end();
 
@@ -84,26 +75,59 @@ const unifiedServer = (req, res) => {
         };
 
         // Route the request to the handler specified in the router
-        choosenHandler(data, (statusCode, payload) => {
+        // @TODO add content-type to serve not only .json
+        choosenHandler(data, (statusCode, payload, contentType) => {
 
+            // Determine the type of response
+            contentType = typeof(contentType) === "string" ? contentType : "json";
+
+            // Determine status code
             statusCode = typeof(statusCode) === "number" ? statusCode : 200;
 
-            payload    = typeof(payload) === "object" ? payload : {};
+            // Use the payload called back the handler
+            // payload    = typeof(payload) === "object" ? payload : {};
 
             // Convert the payload into a string
-            const payloadString = JSON.stringify(payload);
+            // let payloadString = JSON.stringify(payload, null, 4);
+            let payloadString = "";
 
-            // Return the response
-            res.setHeader("Content-Type", "application/json");
 
-            res.writeHead(statusCode);
+            // Retrun the response-parts that with content-specific
+            if (contentType === "json") {
+                response.setHeader("Content-Type", "application/json");
+                // Use payload called back the handler, or default to an empty object
+                payload = typeof(payload) === "object" ? payload : {};
+                payloadString = JSON.stringify(payload, null, 4);
+            };
 
-            res.end(payloadString);
+            if (contentType === "html") {
+                response.setHeader("Content-type", "text/html");
+                payloadString = typeof(payload) === "string" ? payload : "";
+            };
+
+            if (contentType === "favicon") {
+                res.setHeader("Content-type", "image/x-icon");
+                payloadString = typeof(payload) !== "undefined" ? payload : "";
+            };
+
+            if (contentType === "css") {
+                res.setHeader("Content-type", "text/css");
+                payloadString = typeof(payload) !== "undefined" ? payload : "";
+            };
+
+            if (contentType === "js") {
+                res.setHeader("Content-type", "application/javascript");
+                payloadString = typeof(payload) !== "undefined" ? payload : "";
+            };
+
+            // Return the response-parts that are common to all content-types
+            response.writeHead(statusCode);
+            response.end(payloadString);
 
             // log the request path
             console.log("Returning response: ", statusCode, payloadString);
 
-        })
+        });
         // console.log(`Request recieved on path: "${trimmedPath}"`)
         // console.log(`Request recieved method: "${method}"`)
         // console.log("Query string parameters:", queryStringObject)
@@ -115,8 +139,27 @@ const unifiedServer = (req, res) => {
     });
 };
 
+const init = () => {
+
+    // Start HTTP server
+    httpServer.listen(config.httpPort, () => {
+
+        console.log(`The server is listening on port "${config.httpPort}" in "${config.envName}" mode`);
+    });
+
+    // Start HTTPS server
+    httpsServer.listen (config.httpsPort, () => {
+
+        console.log(`The server is listening on port "${config.httpsPort}" in "${config.envName}" mode`);
+    });
+};
+
+// Init server
+init();
+
 // Define a request router
 const router = {
+    ""         : handlers.index,
     "about"    : handlers.about,
     "projects" : handlers.projects,
     "blog"     : handlers.blog,

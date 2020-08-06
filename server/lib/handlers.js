@@ -10,30 +10,89 @@ const helpers = require("./helpers.js");
 // Define the handlers
 let handlers = {};
 
+/*
+ * HTML handlers
+ *
+ */
+
+handlers.index = (data, callback) => {
+
+    // Reject any request except GET
+    if (data.method === "get") {
+        // @TODO: use svelteJS to serve; either using template engine
+        // Read in a template or client-side .html as string
+        helpers.getTemplate("index", (err, str) => {
+
+            if (err && str) {
+                callback(500, {
+                    "error code": 500,
+                    "error message": "No HTML page serve the request"
+                }, "json")
+            }
+            else {
+                // console.log("string from handlers", str);
+                callback(200, str, "html");
+            };
+        });
+    }
+    else {
+        callback(405, {
+            "error code": 405,
+            "error message": "your request unaccepted"
+        }, "json");
+    };
+};
+
 // Sample handlers
 handlers.about = (data, callback) => {
 
-    // Callback an HTTP status code, and payload object
-    callback(200, {
-        "name"  : "About handlers",
-        "Group" : "Home"
-    });
+    // Reject any request except GET
+    if (data.method === "get") {
+        callback(200, {
+            "name"  : "About handlers",
+            "Group" : "About"
+        }, "json");
+    }
+    else {
+        callback(405, {
+            "error code": 405,
+            "error message": "your request unaccepted"
+        }, "json");
+    };
 };
 
 handlers.projects = (data, callback) => {
 
-    callback(200, {
-        "name"  : "Project handlers",
-        "Group" : "Project"
-    });
+    // Reject any request except GET
+    if (data.method === "get") {
+        callback(200, {
+            "name"  : "Project handlers",
+            "Group" : "Project"
+        }, "json");
+    }
+    else {
+        callback(405, {
+            "error code": 405,
+            "error message": "your request unaccepted"
+        }, "json");
+    };
 };
 
 handlers.blog = (data, callback) => {
 
-    callback(200, {
-        "name"  : "Blog handlers",
-        "Group" : "Blog"
-    });
+    // Reject any request except GET
+    if (data.method === "get") {
+        callback(200, {
+            "name"  : "Blog handlers",
+            "Group" : "Blog"
+        }, "json");
+    }
+    else {
+        callback(405, {
+            "error code": 405,
+            "error message": "your request unaccepted"
+        }, "json");
+    };
 };
 
 // Not found handlers
@@ -41,8 +100,13 @@ handlers.notFound = (data, callback) =>{
 
     return callback(404, {
         "message": `Your request: with method "${data.method}" and path: "${data.trimmedPath}" was unaccepted`,
-    });
+    }, "json");
 }
+
+/*
+ * JSON API handlers
+ *
+ */
 
 // Users
 handlers.users = (data, callback) => {
@@ -65,7 +129,7 @@ handlers.users = (data, callback) => {
         return callback(405, {
             "Error": "handlers does not exist",
             "message": `Your request: "${data.method}" was unaccepted`
-        });
+        }, "json");
     };
 };
 
@@ -125,7 +189,7 @@ handlers._users.post = (data, callback) => {
             return callback(500, {
                 "error code": "500",
                 "error message": "password not hashed"
-            });
+            }, "json");
         }
         else {
             _data.create("users", phone, userObject, err => {
@@ -136,13 +200,13 @@ handlers._users.post = (data, callback) => {
                         "error code": "500",
                         "error message": "could not crete new users, it may exists",
                         "payload": data.payload
-                    });
+                    }, "json");
                 }
                 else {
                     return callback(200, {
                         "success code": 200,
                         "200": `user has been created with phone number: ${phone}`
-                    });
+                    }, "json");
                 };
             });
         };
@@ -154,20 +218,14 @@ handlers._users.post = (data, callback) => {
 
             // it should return err, cause file not exist, if exist callback(400)
             if(err){
-                // console.log("readDataUsers: err", err)
-                // console.log("readDataUsers: data", phone)
                 return createDataUsers();
-                // console.log(err)
-                // callback(200, {
-                //     "200": "success read data it's not exists"
-                // })
             }
             else {
                 console.log("readDataUsers error:", err)
                return callback(400, {
                     "error code": 400,
                     "error message": `User with phone: ${phone} has registered `
-                });
+                }, "json");
             };
         })
     };
@@ -177,14 +235,10 @@ handlers._users.post = (data, callback) => {
             "error code": "400",
             "error message": "Missing required fields",
             "missing fields": data.payload
-        });
+        }, "json");
     }
     else {
         return readDataUsers();
-        // console.log(data.payload)
-        // callback(200, {
-        //     "payload": data.payload
-        // });
     };
 };
 
@@ -215,7 +269,7 @@ handlers._users.get = (data, callback) => {
                     "error code": 404,
                     "error message": "phone was not registered",
                     "query": data
-                });
+                }, "json");
             }
             else {
                 // Remove the hashed password from the user object before returning it to requester
@@ -224,7 +278,7 @@ handlers._users.get = (data, callback) => {
                     "success code": 200,
                     "success message": "phone number was valid",
                     "user data": data
-                });
+                }, "json");
             };
         });
     };
@@ -237,7 +291,7 @@ handlers._users.get = (data, callback) => {
             "url query": data.queryStringObject,
             "error message": "Missing required field",
             "hint": "input the correct phone number",
-        });
+        }, "json");
     }
     else {
         return readPhone();
@@ -287,7 +341,7 @@ handlers._users.put = (data, callback) => {
                 callback(500, {
                     "error code": 500,
                     "error message": "Could not update the user",
-                });
+                }, "json");
             }
             else {
                 console.log(err);
@@ -295,7 +349,7 @@ handlers._users.put = (data, callback) => {
                     "success code": 200,
                     "succes message": ` Success Update user with phone number ${userData.phone}`,
                     userData
-                });
+                }, "json");
             };
         });
         return;
@@ -329,7 +383,7 @@ handlers._users.put = (data, callback) => {
                     "error message": "The specified user does not exist",
                     "payload": data.payload,
                     userData
-                });
+                }, "json");
             }
             else {
                 return updateField(err, userData);
@@ -348,7 +402,7 @@ handlers._users.put = (data, callback) => {
                 "error message": "No field to update",
                 "hint": "Please update on of those: 'firstName' or 'lastName' or 'password'",
                 "data":  data.payload
-            });
+            }, "json");
         };
     };
 
@@ -359,7 +413,7 @@ handlers._users.put = (data, callback) => {
             "error message": "Missing required field",
             "hint": "input the correct phone number",
             "data": data
-        });
+        }, "json");
     }
     else {
         return readField();
@@ -395,7 +449,7 @@ handlers._users.delete = (data, callback) => {
                     "error code": 500,
                     "error message": `Could not delete the specified users with phone number ${data.phone}`,
                     data
-                });
+                }, "json");
             }
             else {
                 callback(200, {
@@ -403,7 +457,7 @@ handlers._users.delete = (data, callback) => {
                     "success message": `Success delete users with phone number: ${data.phone}`,
                     "deleted user": data,
                     err
-                })
+                }, "json")
             }
         })
     }
@@ -418,7 +472,7 @@ handlers._users.delete = (data, callback) => {
                     "error code": 404,
                     "error message": "phone was not registered",
                     "query": err
-                });
+                }, "json");
             }
             else {
                 return deleteUser(err, data);
@@ -434,7 +488,7 @@ handlers._users.delete = (data, callback) => {
             "url query": data.queryStringObject,
             "error message": "Missing required field",
             "hint": "input the correct phone number in the query",
-        });
+        }, "json");
     }
     else {
         return readPhone();

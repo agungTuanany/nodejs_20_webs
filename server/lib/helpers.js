@@ -5,6 +5,8 @@
 
 // Core Dependencies
 const crypto = require("crypto");
+const path = require("path");
+const fs = require("fs");
 
 // Internal Dependencies
 const config = require("./config.js");
@@ -36,6 +38,31 @@ helpers.parseJsonToObject = (str) => {
 };
 
 
+// Get the string content of a Template
+helpers.getTemplate = (templateName, callback) => {
+
+    templateName = typeof(templateName) === "string" && templateName.length > 0 ?
+        templateName :
+        false;
+
+    if (!templateName) {
+        callback("A valid template name was not specified");
+    }
+    else {
+        let templatesDir = path.join(__dirname, "./../../client/");
+
+        fs.readFile(templatesDir+templateName+".html", "utf-8", (err, str) => {
+
+            if (err && str && str.length < 0) {
+                console.log(err);
+                callback("No template could be found");
+            }
+            else {
+                callback(false, str);
+            };
+        });
+    };
+};
 
 
 

@@ -147,8 +147,8 @@ lib.delete = (dir, file, callback) => {
         if (err) return callback(`Could not delete "${file}.json", it may not exist yet`);
 
         console.log(`The "${file}.json" has been deleted`);
-        callback(err)
-        return
+        callback(err);
+        return;
     });
 };
 
