@@ -3,6 +3,7 @@
  * Request handlers
  *
  */
+
 // Internal Dependencies
 const _data = require("./data.js");
 const helpers = require("./helpers.js");
@@ -36,7 +37,7 @@ handlers.index = (data, callback) => {
         });
     }
     else {
-        callback(405, {
+        return callback(405, {
             "error code": 405,
             "error message": "your request unaccepted"
         }, "json");
@@ -52,7 +53,7 @@ handlers.staticFile = (data, callback) => {
             helpers.getStaticfile(trimmedAssetName, (err, data) => {
 
                 if (err && data) {
-                    callback(400,{
+                    return callback(400,{
                         "error message": err,
                         " response data": data
                     },"json");
@@ -63,10 +64,11 @@ handlers.staticFile = (data, callback) => {
 
                     if(trimmedAssetName.indexOf(".css") > -1) {
                         contentType = "css";
-                    }
+                    };
+
                     if(trimmedAssetName.indexOf(".js") > -1) {
                         contentType = "js";
-                    }
+                    };
 
                     callback(200, data, contentType);
                 };
@@ -82,13 +84,12 @@ handlers.staticFile = (data, callback) => {
         };
     }
     else {
-        callback(405, {
+        return callback(405, {
             "error code": 405,
             "error message": "your request unaccepted"
         }, "json");
-
-    }
-}
+    };
+};
 
 // Sample handlers
 handlers.about = (data, callback) => {
@@ -118,7 +119,7 @@ handlers.projects = (data, callback) => {
         }, "json");
     }
     else {
-        callback(405, {
+        return callback(405, {
             "error code": 405,
             "error message": "your request unaccepted"
         }, "json");
@@ -135,20 +136,21 @@ handlers.blog = (data, callback) => {
         }, "json");
     }
     else {
-        callback(405, {
+        return callback(405, {
             "error code": 405,
             "error message": "your request unaccepted"
         }, "json");
     };
 };
 
-// Not found handlers
+// MAIN Not found handlers
 handlers.notFound = (data, callback) =>{
 
     return callback(404, {
-        "message": `Your request: with method "${data.method}" and path: "${data.trimmedPath}" was unaccepted`,
+        "message-warning": `Your request: with method "${data.method}" and path: "${data.trimmedPath}" was unaccepted`,
+        data
     }, "json");
-}
+};
 
 /*
  * JSON API handlers
@@ -257,6 +259,8 @@ handlers._users.post = (data, callback) => {
                 };
             });
         };
+        // End the event-loop;
+        return;
     };
 
     const readDataUsers = () => {
@@ -268,7 +272,7 @@ handlers._users.post = (data, callback) => {
                 return createDataUsers();
             }
             else {
-                console.log("readDataUsers error:", err)
+                console.log("readDataUsers error:", err);
                return callback(400, {
                     "error code": 400,
                     "error message": `User with phone: ${phone} has registered `
@@ -312,7 +316,7 @@ handlers._users.get = (data, callback) => {
 
             if (err && data) {
                 console.log(`readPhone data: ${err}`);
-                callback(404, {
+                return callback(404, {
                     "error code": 404,
                     "error message": "phone was not registered",
                     "query": data
@@ -328,10 +332,12 @@ handlers._users.get = (data, callback) => {
                 }, "json");
             };
         });
+        // End the event-loop;
+        return;
     };
 
     if (!phone) {
-        callback(400, {
+        return callback(400, {
             "error code": 400,
             "requested method": data.method.toUpperCase(),
             "requested url": data.trimmedPath,
@@ -343,7 +349,6 @@ handlers._users.get = (data, callback) => {
     else {
         return readPhone();
     };
-
 };
 
 /*
@@ -385,7 +390,7 @@ handlers._users.put = (data, callback) => {
 
             if (err) {
                 console.log(`storeUpdate _data.update error message ${err}`);
-                callback(500, {
+               return  callback(500, {
                     "error code": 500,
                     "error message": "Could not update the user",
                 }, "json");
@@ -399,13 +404,14 @@ handlers._users.put = (data, callback) => {
                 }, "json");
             };
         });
+        // End the event-loop;
         return;
     };
 
     const updateField = (err, userData) => {
 
         if (firstName) {
-             userData.firstName = firstName
+             userData.firstName = firstName;
         };
 
         if (lastName) {
@@ -425,7 +431,7 @@ handlers._users.put = (data, callback) => {
 
             if (err && userData) {
                 console.log(`readPhone _data.read error message: ${err}`);
-                callback(404, {
+                return callback(404, {
                     "error code": 404,
                     "error message": "The specified user does not exist",
                     "payload": data.payload,
@@ -444,7 +450,7 @@ handlers._users.put = (data, callback) => {
             return readPhone();
         }
         else {
-            callback(400, {
+            return callback(400, {
                 "error code": 400,
                 "error message": "No field to update",
                 "hint": "Please update on of those: 'firstName' or 'lastName' or 'password'",
@@ -455,7 +461,7 @@ handlers._users.put = (data, callback) => {
 
     // Error if the phone is invalid
     if (!phone) {
-        callback(400, {
+        return callback(400, {
             "error code": 400,
             "error message": "Missing required field",
             "hint": "input the correct phone number",
@@ -492,7 +498,7 @@ handlers._users.delete = (data, callback) => {
 
             if (err) {
                 console.log(`deleteUser _data.delete error message ${err}`);
-                callback(500, {
+                return callback(500, {
                     "error code": 500,
                     "error message": `Could not delete the specified users with phone number ${data.phone}`,
                     data
@@ -504,18 +510,20 @@ handlers._users.delete = (data, callback) => {
                     "success message": `Success delete users with phone number: ${data.phone}`,
                     "deleted user": data,
                     err
-                }, "json")
-            }
-        })
-    }
+                }, "json");
+            };
+        });
+        // End the event-loop;
+        return;
+    };
 
     const readPhone = () => {
 
         _data.read("users", phone, (err, data) => {
 
             if (err && data) {
-                console.log(`readPhone data error message: ${err}`);
-                callback(404, {
+                console.log(`readPhone _data.read error message: ${err}`);
+                return callback(404, {
                     "error code": 404,
                     "error message": "phone was not registered",
                     "query": err
@@ -528,7 +536,7 @@ handlers._users.delete = (data, callback) => {
     };
 
     if (!phone) {
-        callback(400, {
+        return callback(400, {
             "error code": 400,
             "requested method": data.method.toUpperCase(),
             "requested url": data.trimmedPath,
@@ -541,6 +549,5 @@ handlers._users.delete = (data, callback) => {
         return readPhone();
     };
 };
-
 
 module.exports = handlers;

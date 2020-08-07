@@ -77,13 +77,12 @@ helpers.getStaticfile = (fileName, callback) => {
             }
             else {
                 callback(false, data);
-            }
-        })
-
+            };
+        });
     }
     else {
         callback("A valid file name was not specified");
-    }
+    };
 }
 
 
