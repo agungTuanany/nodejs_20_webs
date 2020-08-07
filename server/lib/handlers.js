@@ -43,6 +43,46 @@ handlers.index = (data, callback) => {
     };
 };
 
+handlers.staticFile = (data, callback) => {
+
+    if (data.method === "get") {
+        let trimmedAssetName = data.trimmedPath.replace("client/", "").trim()
+
+        if (trimmedAssetName.length > 0) {
+            helpers.getStaticfile(trimmedAssetName, (err, data) => {
+
+                if (!err && data) {
+                    let contentType = "plain";
+
+                    if(trimmedAssetName.indexOf(".css") > -1) {
+                        contentType = "css";
+                    }
+                    if(trimmedAssetName.indexOf(".js") > -1) {
+                        contentType = "js";
+                    }
+
+                    callback(200, data, contentType);
+                }
+                else {
+                    callback(400,{
+                        "error message": err,
+                        " response data": data
+                    },"json");
+                    console.log(`Error: ${err}`);
+
+                }
+            })
+        }
+    }
+    else {
+        callback(405, {
+            "error code": 405,
+            "error message": "your request unaccepted"
+        }, "json");
+
+    }
+}
+
 // Sample handlers
 handlers.about = (data, callback) => {
 

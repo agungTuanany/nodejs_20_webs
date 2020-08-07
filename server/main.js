@@ -61,9 +61,14 @@ const unifiedServer = (request, response) => {
 
         // Choose the handlers this request should go to if request is not
         // found, use notFound handlers
-        const choosenHandler = typeof(router[trimmedPath]) !== "undefined" ?
+        let choosenHandler = typeof(router[trimmedPath]) !== "undefined" ?
             router[trimmedPath] :
             handlers.notFound;
+
+        choosenHandler = trimmedPath.indexOf("client/") > -1 ?
+            handlers.staticFile :
+            choosenHandler;
+
 
         // Construct the data object to send to the handler
         const data = {
@@ -80,6 +85,7 @@ const unifiedServer = (request, response) => {
 
             // Determine the type of response
             contentType = typeof(contentType) === "string" ? contentType : "json";
+
 
             // Determine status code
             statusCode = typeof(statusCode) === "number" ? statusCode : 200;
@@ -106,17 +112,17 @@ const unifiedServer = (request, response) => {
             };
 
             if (contentType === "favicon") {
-                res.setHeader("Content-type", "image/x-icon");
+                response.setHeader("Content-type", "image/x-icon");
                 payloadString = typeof(payload) !== "undefined" ? payload : "";
             };
 
             if (contentType === "css") {
-                res.setHeader("Content-type", "text/css");
+                response.setHeader("Content-type", "text/css");
                 payloadString = typeof(payload) !== "undefined" ? payload : "";
             };
 
             if (contentType === "js") {
-                res.setHeader("Content-type", "application/javascript");
+                response.setHeader("Content-type", "application/javascript");
                 payloadString = typeof(payload) !== "undefined" ? payload : "";
             };
 
@@ -163,5 +169,6 @@ const router = {
     "about"    : handlers.about,
     "projects" : handlers.projects,
     "blog"     : handlers.blog,
-    "users"    : handlers.users
+    "users"    : handlers.users,
+    "client"   : handlers.staticFile
 };

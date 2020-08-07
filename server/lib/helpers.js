@@ -64,7 +64,27 @@ helpers.getTemplate = (templateName, callback) => {
     };
 };
 
+helpers.getStaticfile = (fileName, callback) => {
+    fileName = typeof(fileName) === "string" && fileName.length > 0 ? fileName : false;
 
+    if (fileName) {
+
+        const publicDir = path.join(__dirname, "./../../client/");
+        fs.readFile(publicDir+fileName, "utf-8", (err, data) => {
+
+            if(err && data) {
+                callback(`No file could be found \n ${err}`)
+            }
+            else {
+                callback(false, data);
+            }
+        })
+
+    }
+    else {
+        callback("A valid file name was not specified");
+    }
+}
 
 
 module.exports = helpers;
