@@ -150,13 +150,13 @@ const init = () => {
     // Start HTTP server
     httpServer.listen(config.httpPort, () => {
 
-        console.log(`The server is listening on port "${config.httpPort}" in "${config.envName}" mode`);
+        console.log(`The "http" server is listening on port "${config.httpPort}" in "${config.envName}" mode`);
     });
 
     // Start HTTPS server
     httpsServer.listen (config.httpsPort, () => {
 
-        console.log(`The server is listening on port "${config.httpsPort}" in "${config.envName}" mode`);
+        console.log(`The "https" server is listening on port "${config.httpsPort}" in "${config.envName}" mode`);
     });
 };
 

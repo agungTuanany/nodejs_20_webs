@@ -30,7 +30,7 @@ handlers.index = (data, callback) => {
                 }, "json")
             }
             else {
-                // console.log("string from handlers", str);
+                // console.log(`string from handlers ${str}`);
                 callback(200, str, "html");
             };
         });
@@ -51,7 +51,14 @@ handlers.staticFile = (data, callback) => {
         if (trimmedAssetName.length > 0) {
             helpers.getStaticfile(trimmedAssetName, (err, data) => {
 
-                if (!err && data) {
+                if (err && data) {
+                    callback(400,{
+                        "error message": err,
+                        " response data": data
+                    },"json");
+                    console.log(`helpers.getStaticFile Error message: ${err}`);
+                }
+                else {
                     let contentType = "plain";
 
                     if(trimmedAssetName.indexOf(".css") > -1) {
@@ -62,17 +69,17 @@ handlers.staticFile = (data, callback) => {
                     }
 
                     callback(200, data, contentType);
-                }
-                else {
-                    callback(400,{
-                        "error message": err,
-                        " response data": data
-                    },"json");
-                    console.log(`Error: ${err}`);
-
-                }
-            })
+                };
+            });
         }
+        else {
+        console.log(`trimmedAssetName error message: ${trimmedAssetName}`);
+            return callback(404, {
+                "error code": 404,
+                "error message": "Your requested file ",
+                "requested file": trimmedAssetName
+            });
+        };
     }
     else {
         callback(405, {
@@ -235,7 +242,7 @@ handlers._users.post = (data, callback) => {
             _data.create("users", phone, userObject, err => {
 
                 if (err) {
-                    console.log(err);
+                    console.log(`_data.create error message: ${err}`);
                     return callback(500, {
                         "error code": "500",
                         "error message": "could not crete new users, it may exists",
@@ -304,7 +311,7 @@ handlers._users.get = (data, callback) => {
         _data.read("users", phone, (err, data) => {
 
             if (err && data) {
-                console.log("readPhone data:" ,err)
+                console.log(`readPhone data: ${err}`);
                 callback(404, {
                     "error code": 404,
                     "error message": "phone was not registered",
@@ -377,14 +384,14 @@ handlers._users.put = (data, callback) => {
         _data.update("users", phone, userData, err => {
 
             if (err) {
-                console.log(err);
+                console.log(`storeUpdate _data.update error message ${err}`);
                 callback(500, {
                     "error code": 500,
                     "error message": "Could not update the user",
                 }, "json");
             }
             else {
-                console.log(err);
+                console.log(`storeUpdate _data.upate error message ${err}`);
                 callback(200, {
                     "success code": 200,
                     "succes message": ` Success Update user with phone number ${userData.phone}`,
@@ -417,7 +424,7 @@ handlers._users.put = (data, callback) => {
         _data.read("users", phone, (err, userData) => {
 
             if (err && userData) {
-                console.log("readPhone data:" ,err);
+                console.log(`readPhone _data.read error message: ${err}`);
                 callback(404, {
                     "error code": 404,
                     "error message": "The specified user does not exist",
@@ -484,7 +491,7 @@ handlers._users.delete = (data, callback) => {
         _data.delete("users", phone, err => {
 
             if (err) {
-                console.log(err);
+                console.log(`deleteUser _data.delete error message ${err}`);
                 callback(500, {
                     "error code": 500,
                     "error message": `Could not delete the specified users with phone number ${data.phone}`,
@@ -507,7 +514,7 @@ handlers._users.delete = (data, callback) => {
         _data.read("users", phone, (err, data) => {
 
             if (err && data) {
-                console.log("readPhone data:" ,err)
+                console.log(`readPhone data error message: ${err}`);
                 callback(404, {
                     "error code": 404,
                     "error message": "phone was not registered",
